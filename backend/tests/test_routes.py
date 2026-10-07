@@ -1,3 +1,4 @@
+import random
 from datetime import date
 
 from fastapi.testclient import TestClient
@@ -14,6 +15,16 @@ def test_generate_mock_movements_returns_full_year_sorted_data():
 
     assert len(movements) == 360
     assert movements == sorted(movements, key=lambda item: item.create_date)
+
+
+def test_generate_mock_movements_does_not_mutate_global_random_state():
+    random.seed(8675309)
+    expected_next_value = random.random()
+    random.seed(8675309)
+
+    generate_mock_movements(seed=42)
+
+    assert random.random() == expected_next_value
 
 
 def test_filter_movements_by_date_includes_range_edges():
@@ -168,6 +179,16 @@ def test_metrics_comparison_returns_delta_fields():
         "delta_abs",
         "delta_pct",
     }
+
+
+def test_metrics_comparison_rejects_inverted_date_range():
+    response = client.get(
+        "/api/metrics/comparison",
+        params={"start_date": "2025-03-31", "end_date": "2025-03-01"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "end_date must be on or after start_date"
 
 
 def test_metrics_alerts_returns_anomaly_candidates():

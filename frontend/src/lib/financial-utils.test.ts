@@ -101,6 +101,30 @@ describe("computeMonthlyData", () => {
       profitPercent: 100,
     });
   });
+
+  it("keeps the calendar month for ISO dates on month boundaries", () => {
+    const boundaryMovements: FinancialMovement[] = [
+      {
+        create_date: "2025-03-01",
+        amount: 100,
+        operation_type: "income",
+        category: "sales",
+        business_type: "B2B",
+      },
+      {
+        create_date: "2025-02-28",
+        amount: 25,
+        operation_type: "outcome",
+        category: "suppliers",
+        business_type: "B2B",
+      },
+    ];
+
+    expect(computeMonthlyData(boundaryMovements).map(({ month }) => month)).toEqual([
+      "Feb 2025",
+      "Mar 2025",
+    ]);
+  });
 });
 
 describe("formatters", () => {
