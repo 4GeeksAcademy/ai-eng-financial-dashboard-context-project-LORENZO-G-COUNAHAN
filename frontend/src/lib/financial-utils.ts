@@ -1,7 +1,9 @@
 import {
+  type Category,
   type FinancialMovement,
   type TopCategoryItem,
   type CategoryIncomeShare,
+  type OperationType,
   type KPIMetrics,
   type MonthlyDataPoint,
 } from "./financial-types";
@@ -93,4 +95,22 @@ export function calculateCategoryIncomeShares(
     percentage:
       totalGroupIncome > 0 ? (item.total_amount / totalGroupIncome) * 100 : 0,
   }));
+}
+
+export function completeCategoryIncomeShares(
+  availableCategories: Category[],
+  topCategories: TopCategoryItem[],
+  totalGroupIncome: number,
+  operationType: OperationType = "income",
+): CategoryIncomeShare[] {
+  const totalsByCategory = new Map(
+    topCategories.map((item) => [item.category, item.total_amount]),
+  );
+  const allCategories: TopCategoryItem[] = availableCategories.map((category) => ({
+    category,
+    operation_type: operationType,
+    total_amount: totalsByCategory.get(category) ?? 0,
+  }));
+
+  return calculateCategoryIncomeShares(allCategories, totalGroupIncome);
 }

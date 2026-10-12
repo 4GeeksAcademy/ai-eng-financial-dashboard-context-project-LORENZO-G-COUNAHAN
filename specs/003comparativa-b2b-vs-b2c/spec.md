@@ -14,23 +14,24 @@ Como usuario del equipo de finanzas, quiero comparar los ingresos de B2B y B2C p
 
 ## Requisitos funcionales
 
+La especificación inicial solicitaba una comparación únicamente de ingresos. Durante la implementación, el usuario aprobó ampliar esa comparación para incluir también egresos; los siguientes requisitos y criterios describen el alcance aprobado actualizado.
+
 - Crear una nueva página/vista del dashboard dedicada a comparar B2B y B2C.
 - Presentar dos secciones en paralelo, una para B2B y otra para B2C.
-- Cada sección presenta las cinco categorías principales de ingresos del grupo e incluye para cada categoría:
-  - nombre de categoría;
-  - total de ingresos;
-  - porcentaje sobre el total de ingresos del grupo.
-- Debajo de las dos secciones mostrar un único gráfico comparativo de ingresos B2B y B2C.
+- Cada sección presenta todas las categorías disponibles en facets (administrative, operational, others, sales, suppliers). Para cada categoría muestra el importe de ingresos y egresos y el porcentaje que cada importe representa respecto del total de la misma operación en ese grupo.
+- Las categorías sin movimientos para una operación se muestran con importe y porcentaje cero.
+- Debajo de las dos secciones mostrar un único gráfico comparativo de ingresos y egresos B2B y B2C.
 - Permitir filtrar la comparativa mediante un rango de fechas en formato `YYYY-MM-DD`.
 - Obtener las categorías disponibles de `GET /api/metrics/facets`.
-- Utilizar `GET /api/metrics/categories/top?operation_type=income&limit=5` para obtener las categorías principales.
+- Utilizar `GET /api/metrics/categories/top` para obtener las categorías por operación y línea de negocio dentro del rango; solicitar `operation_type=income&limit=5` para ingresos y `operation_type=outcome&limit=5` para egresos.
+- Calcular los porcentajes con denominadores separados por línea de negocio y operación (ingresos B2B, egresos B2B, ingresos B2C y egresos B2C).
 
 ## Criterios de aceptación
 
 - Existe una nueva vista/página identificable de comparativa B2B vs B2C.
 - La página muestra en paralelo una sección B2B y una B2C.
-- Cada sección muestra hasta cinco categorías principales de ingresos, con nombre, total y porcentaje sobre los ingresos totales de su grupo.
-- Hay un único gráfico debajo de ambas secciones que compara visualmente los ingresos de los dos grupos.
+- Cada sección muestra todas las categorías devueltas por facets. Cada categoría presenta ingresos y egresos (importe y porcentaje sobre el total de esa operación para su grupo); los datos ausentes se muestran como cero.
+- Hay un único gráfico debajo de ambas secciones que compara visualmente ingresos y egresos de B2B y B2C.
 - El usuario puede seleccionar un rango de fechas y la comparativa refleja ese rango usando fechas `YYYY-MM-DD`.
 - Las categorías disponibles de la interfaz se obtienen desde `/api/metrics/facets`.
 - Las categorías principales se obtienen desde `/api/metrics/categories/top` con `operation_type=income` y `limit=5`.
@@ -38,14 +39,18 @@ Como usuario del equipo de finanzas, quiero comparar los ingresos de B2B y B2C p
 ## Casos de prueba
 
 - Abrir la nueva vista y comprobar la presencia de las secciones B2B y B2C en paralelo.
-- Comprobar que cada sección muestra como máximo cinco filas con nombre, total de ingresos y porcentaje del grupo.
-- Comprobar que se presenta un único gráfico comparativo debajo de ambas secciones.
+- Comprobar que cada sección presenta una fila por categoría de facets y muestra importes y porcentajes de ingreso y egreso, con cero para categorías sin movimientos.
+- Comprobar que se presenta un único gráfico comparativo debajo de ambas secciones con las series de ingreso y egreso de B2B y B2C.
 - Cambiar el rango de fechas y comprobar que las solicitudes relevantes incluyen `start_date` y `end_date` con fechas `YYYY-MM-DD`, y que los valores mostrados se actualizan.
 - Comprobar que las categorías se cargan mediante `/api/metrics/facets`.
-- Comprobar que se solicitan los top 5 usando `operation_type=income` y `limit=5` para cada línea de negocio.
+- Comprobar que se solicitan categorías top de ingresos (`operation_type=income`, `limit=5`) y egresos (`operation_type=outcome`, `limit=5`) para cada línea de negocio.
 
 ## Fuera de alcance
 
 - Modificar los datos fuente o la lógica con la que el backend genera y almacena movimientos.
 - Añadir comparativas entre líneas de negocio distintas de B2B y B2C.
 - Cambiar los gráficos existentes del dashboard principal.
+
+## Aclaración aprobada durante la implementación
+
+Se conserva el alcance inicial de la comparativa B2B vs B2C y se amplía explícitamente a ingresos y egresos, según aprobación del usuario: cada categoría debe tener un valor de `income` y `outcome` en cada grupo, presentados en dos paneles (B2B y B2C). Los porcentajes se calculan de forma independiente por operación y grupo. Esta aclaración reemplaza en los requisitos relacionados la visualización exclusiva de ingresos. Asimismo, el nombre de categoría se alinea con el contrato comprobado de facets/backend: `suppliers` (no `supplies`).

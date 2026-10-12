@@ -1,20 +1,22 @@
-# Tareas: comparativa B2B vs B2C
+# Tareas: comparativa B2B vs B2C con ingresos y egresos
 
 ## Frontend
 
-- [x] **T001** Definir los tipos y cálculos de presentación requeridos para datos top por grupo y porcentaje sobre el total de ingresos B2B/B2C. Evidencia: tipos `MetricsFacets`, `TopCategoryItem` y `CategoryIncomeShare`; cálculo en `calculateCategoryIncomeShares` cubierto para total > 0 y total 0. El analizador del editor no reporta errores en los archivos tocados.
-- [x] **T002** Crear los componentes de dos secciones paralelas que muestren hasta cinco categorías de ingresos por grupo, con categoría, total y porcentaje. Evidencia: `BusinessIncomePanel` presenta tabla, usa `slice(0, 5)` y expone columnas de categoría, ingresos y porcentaje; análisis del editor sin errores.
-- [x] **T003** Añadir debajo de las secciones un único gráfico que compare visualmente los ingresos B2B y B2C. Evidencia: `BusinessIncomeComparisonChart` implementa un gráfico de barras con series B2B y B2C; análisis del editor sin errores.
-- [x] **T004** Añadir navegación/acceso a la nueva vista y conectar facets, las consultas top por negocio y los totales de ingresos, aplicando el mismo rango `YYYY-MM-DD` a todas las solicitudes y evitando consultas con rango invertido. Evidencia: `App.tsx` ofrece navegación a la vista y consulta facets; ambas llamadas top fijan `operation_type=income`, `limit=5` y `business_type`; llamadas de top e ingresos comparten `start_date`/`end_date` en formato de `<input type="date">`; `invertedRange` impide iniciar/reutilizar las consultas y limpia sus resultados.
+- [x] **T001** Generalizar tipos y utilidades para completar categorías por operación y calcular porcentajes contra el total del mismo grupo y operación; añadir pruebas unitarias, incluyendo denominador cero. Evidencia: prueba Vitest de categorías outcome verifica porcentaje 75/300 y cero seguro para total cero; prueba existente cubre las cinco categorías income.
+- [x] **T002** Actualizar las consultas de la vista para solicitar ingresos y egresos top para B2B y B2C, así como los cuatro conjuntos de movimientos usados para los denominadores; mantener rango de fechas común. Evidencia: `App.tsx` hace ocho solicitudes de comparación (4 top con operación, negocio y limit 5; 4 de movimientos con operación y mismas fechas) y backend pytest pasó 22 pruebas.
+- [x] **T003** Actualizar cada panel para mostrar, por cada categoría de facets, importe y porcentaje de ingresos y egresos, con cero para categorías ausentes. Evidencia: cada panel recorre filas combinadas desde `facets.categories` y muestra columnas ingreso, % ingreso, egreso y % egreso; utilidades completan categorías ausentes con cero.
+- [x] **T004** Actualizar el gráfico único para comparar ingresos y egresos de B2B y B2C por categoría. Evidencia: un `BusinessIncomeComparisonChart` sigue montándose debajo de los dos paneles y contiene las cuatro series B2B/B2C × ingreso/egreso.
 
 ## Verificación
 
-- [x] **T005** Ejecutar las pruebas backend y frontend, build y lint definidos en el plan; resolver fallos atribuibles a los cambios sin modificar la configuración de las herramientas de testing. Evidencia: `cd backend && pytest` pasó (22 tests). En frontend, `npm ci` y las verificaciones se ejecutaron en `/tmp/financial-dashboard-frontend` porque el `node_modules` del workspace pertenece a `root` y bloquea escrituras: `npm test -- --run` pasó (8 tests), `npm run build` pasó y `npm run lint` pasó. Se corrigieron hallazgos de lint en `App.tsx` evitando actualizaciones síncronas de estado dentro de efectos. Build informa solo una advertencia de chunk >500 kB. No se cambió la configuración de testing.
-- [x] **T006** Verificar uno por uno los criterios de aceptación de `spec.md` y registrar para cada uno `cumple` o `no cumple` con evidencia breve. Evidencia por revisión del código, pruebas automatizadas, build y lint (la comprobación manual en navegador queda pendiente):
-	- **Cumple** — Vista identificable: botón «Comparativa B2B vs B2C» cambia a la vista dedicada en `App.tsx`.
-	- **Cumple** — Secciones en paralelo: `BusinessIncomePanel` B2B y B2C se renderizan en una grilla de dos columnas desde breakpoint `lg`.
-	- **Cumple** — Hasta cinco categorías con nombre, ingresos y porcentaje: panel limita con `slice(0, 5)` y presenta esas columnas; porcentajes se calculan con total del grupo y manejan total cero.
-	- **Cumple** — Único gráfico bajo las secciones: un único `BusinessIncomeComparisonChart` se monta después de ambas tablas.
-	- **Cumple** — Rango compartido en formato de fecha: filtro usa controles `type="date"` y las peticiones top y de ingresos reciben los mismos valores `start_date` y `end_date`.
-	- **Cumple** — Facets: `fetchFacets` consulta `/api/metrics/facets` y sus categorías se utilizan para limitar las categorías del gráfico.
-	- **Cumple** — Top por línea de negocio: se solicitan las categorías para B2B y B2C desde `/api/metrics/categories/top` con `operation_type=income`, `limit=5` y el `business_type` correspondiente.
+- [x] **T005** Ejecutar backend pytest y frontend tests, build y lint existentes; resolver fallos causados por el cambio sin modificar configuración de pruebas. Si una limitación de permisos impide ejecutar dentro del workspace, documentar el método alternativo. Evidencia: backend `pytest`: 22 passed; en `/tmp/financial-dashboard-frontend`, frontend `npm test -- --run`: 10 passed, `npm run build`: pasó (advertencia existente de chunk >500 kB) y `npm run lint`: pasó. No se modificó configuración de pruebas.
+- [x] **T006** Verificar individualmente cada criterio de aceptación actualizado en `spec.md` y registrar `cumple`/`no cumple` con evidencia breve, indicando si no se pudo hacer comprobación manual en navegador.
+
+	- **Cumple** — Vista identificable B2B vs B2C: navegación y vista condicional en `frontend/src/App.tsx`.
+	- **Cumple** — Dos secciones B2B/B2C en paralelo: ambos `BusinessIncomePanel` están en grilla de dos columnas desde `lg`.
+	- **Cumple** — Todas las categorías disponibles con importe y porcentaje de ambas operaciones, y cero para ausentes: filas derivadas de `facets.categories`; `completeCategoryIncomeShares` conserva operación y calcula porcentaje con su denominador separado; Vitest cubre income, outcome y total cero.
+	- **Cumple** — Un único gráfico inferior compara ingreso y egreso para B2B y B2C: una instancia con cuatro series por categoría.
+	- **Cumple** — Rango compartido ISO: filtro `type=date`; funciones de consulta serializan `start_date`/`end_date` compartidos en `YYYY-MM-DD`; lógica existente bloquea rango invertido.
+	- **Cumple** — Categorías de facets: `fetchFacets` consulta `/api/metrics/facets`, y `facets.categories` determina filas y datos del gráfico.
+	- **Cumple** — Top por operación y grupo: se construyen solicitudes para `income` y `outcome`, `limit=5`, negocio B2B/B2C y rango seleccionado.
+	- **No comprobado manualmente** — No se hizo inspección visual/interactiva en navegador; la evidencia anterior procede de código, pruebas, build y lint.

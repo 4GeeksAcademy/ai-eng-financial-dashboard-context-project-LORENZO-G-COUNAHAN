@@ -4,6 +4,7 @@ import {
   computeKPIs,
   computeMonthlyData,
   calculateCategoryIncomeShares,
+  completeCategoryIncomeShares,
   formatCurrency,
   formatPercent,
 } from "./financial-utils";
@@ -157,5 +158,40 @@ describe("calculateCategoryIncomeShares", () => {
       0,
       0,
     ]);
+  });
+});
+
+describe("completeCategoryIncomeShares", () => {
+  it("includes all facet categories and assigns zero to categories outside the top list", () => {
+    const categories = ["administrative", "operational", "others", "sales", "suppliers"] as const;
+    const topCategories: TopCategoryItem[] = [
+      { category: "sales", operation_type: "income", total_amount: 250 },
+      { category: "others", operation_type: "income", total_amount: 50 },
+    ];
+
+    expect(completeCategoryIncomeShares(categories.slice(), topCategories, 1000)).toEqual([
+      { category: "administrative", operation_type: "income", total_amount: 0, percentage: 0 },
+      { category: "operational", operation_type: "income", total_amount: 0, percentage: 0 },
+      { category: "others", operation_type: "income", total_amount: 50, percentage: 5 },
+      { category: "sales", operation_type: "income", total_amount: 250, percentage: 25 },
+      { category: "suppliers", operation_type: "income", total_amount: 0, percentage: 0 },
+    ]);
+  });
+
+  it("completes outcome categories and calculates their share against outcome total", () => {
+    const categories = ["administrative", "operational", "others", "sales", "suppliers"] as const;
+    const topCategories: TopCategoryItem[] = [
+      { category: "suppliers", operation_type: "outcome", total_amount: 75 },
+    ];
+
+    expect(completeCategoryIncomeShares(categories.slice(), topCategories, 300, "outcome")).toEqual([
+      { category: "administrative", operation_type: "outcome", total_amount: 0, percentage: 0 },
+      { category: "operational", operation_type: "outcome", total_amount: 0, percentage: 0 },
+      { category: "others", operation_type: "outcome", total_amount: 0, percentage: 0 },
+      { category: "sales", operation_type: "outcome", total_amount: 0, percentage: 0 },
+      { category: "suppliers", operation_type: "outcome", total_amount: 75, percentage: 25 },
+    ]);
+    expect(completeCategoryIncomeShares(categories.slice(), topCategories, 0, "outcome")
+      .every((item) => item.percentage === 0)).toBe(true);
   });
 });

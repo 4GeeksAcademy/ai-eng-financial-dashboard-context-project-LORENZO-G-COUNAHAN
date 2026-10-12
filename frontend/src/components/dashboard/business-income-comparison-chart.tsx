@@ -15,8 +15,8 @@ export function BusinessIncomeComparisonChart({
   return (
     <Card className="border-border/60">
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Comparativa de ingresos B2B vs B2C</CardTitle>
-        <CardDescription>Ingresos por categoría dentro del periodo seleccionado</CardDescription>
+        <CardTitle className="text-base font-semibold">Comparativa de ingresos y egresos B2B vs B2C</CardTitle>
+        <CardDescription>Importes por categoría dentro del periodo seleccionado</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -25,7 +25,7 @@ export function BusinessIncomeComparisonChart({
           </div>
         ) : data.length === 0 ? (
           <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-            No hay ingresos para comparar en el periodo seleccionado.
+            No hay movimientos para comparar en el periodo seleccionado.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
@@ -39,8 +39,10 @@ export function BusinessIncomeComparisonChart({
               />
               <Tooltip formatter={(value) => formatCurrency(Number(value))} />
               <Legend />
-              <Bar dataKey="B2B" name="B2B" fill="var(--chart-income)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="B2C" name="B2C" fill="var(--chart-profit)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="B2BIncome" name="B2B ingresos" fill="var(--chart-income)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="B2BOutcome" name="B2B egresos" fill="var(--chart-outcome)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="B2CIncome" name="B2C ingresos" fill="var(--chart-profit)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="B2COutcome" name="B2C egresos" fill="var(--chart-4)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

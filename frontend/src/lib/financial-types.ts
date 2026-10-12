@@ -49,8 +49,18 @@ export interface CategoryIncomeShare extends TopCategoryItem {
   percentage: number
 }
 
+export type CategoryOperationShare = CategoryIncomeShare
+
+export interface BusinessCategoryComparisonRow {
+  category: Category
+  income: CategoryOperationShare
+  outcome: CategoryOperationShare
+}
+
 export interface BusinessIncomeComparisonPoint {
   category: Category
-  B2B: number
-  B2C: number
+  B2BIncome: number
+  B2BOutcome: number
+  B2CIncome: number
+  B2COutcome: number
 }

@@ -9,18 +9,20 @@ import { BusinessIncomePanel } from "@/components/dashboard/business-income-pane
 import { BusinessIncomeComparisonChart } from "@/components/dashboard/business-income-comparison-chart";
 import {
   type BusinessIncomeComparisonPoint,
+  type BusinessCategoryComparisonRow,
   type BusinessType,
   type CategoryIncomeShare,
   type Category,
   type FinancialMovement,
   type KPIMetrics,
+  type OperationType,
   type MetricsFacets,
   type MetricsAlert,
   type MonthlyDataPoint,
   type TopCategoryItem,
 } from "@/lib/financial-types";
 import {
-  calculateCategoryIncomeShares,
+  completeCategoryIncomeShares,
   computeKPIs,
   computeMonthlyData,
 } from "@/lib/financial-utils";
@@ -28,7 +30,6 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const EMPTY_MOVEMENTS: FinancialMovement[] = [];
 const EMPTY_ALERTS: MetricsAlert[] = [];
-const EMPTY_CATEGORY_SHARES: CategoryIncomeShare[] = [];
 const EMPTY_COMPARISON_DATA: BusinessIncomeComparisonPoint[] = [];
 
 async function fetchFinancialData(
@@ -52,12 +53,13 @@ async function fetchFinancialData(
 
 async function fetchTopIncomeCategories(
   businessType: BusinessType,
+  operationType: OperationType,
   startDate: string,
   endDate: string,
   signal: AbortSignal,
 ): Promise<TopCategoryItem[]> {
   const params = new URLSearchParams({
-    operation_type: "income",
+    operation_type: operationType,
     limit: "5",
     business_type: businessType,
   });
@@ -68,18 +70,19 @@ async function fetchTopIncomeCategories(
     { signal },
   );
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${businessType} top income categories: ${response.status}`);
+    throw new Error(`Failed to fetch ${businessType} top ${operationType} categories: ${response.status}`);
   }
   return response.json();
 }
 
 async function fetchBusinessIncome(
   businessType: BusinessType,
+  operationType: OperationType,
   startDate: string,
   endDate: string,
   signal: AbortSignal,
 ): Promise<FinancialMovement[]> {
-  const params = new URLSearchParams({ operation_type: "income" });
+  const params = new URLSearchParams({ operation_type: operationType });
   if (startDate) params.set("start_date", startDate);
   if (endDate) params.set("end_date", endDate);
   const response = await fetch(
@@ -87,28 +90,24 @@ async function fetchBusinessIncome(
     { signal },
   );
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${businessType} income: ${response.status}`);
+    throw new Error(`Failed to fetch ${businessType} ${operationType}: ${response.status}`);
   }
   return response.json();
 }
 
 function buildComparisonData(
-  b2bCategories: TopCategoryItem[],
-  b2cCategories: TopCategoryItem[],
+  b2bRows: BusinessCategoryComparisonRow[],
+  b2cRows: BusinessCategoryComparisonRow[],
   availableCategories: Category[],
 ): BusinessIncomeComparisonPoint[] {
-  const availableCategorySet = new Set<Category>(availableCategories);
-  const categorySet = new Set(
-    [...b2bCategories, ...b2cCategories]
-      .map((item) => item.category)
-      .filter((category) => availableCategorySet.has(category)),
-  );
-  const b2bTotals = new Map(b2bCategories.map((item) => [item.category, item.total_amount]));
-  const b2cTotals = new Map(b2cCategories.map((item) => [item.category, item.total_amount]));
-  return [...categorySet].map((category) => ({
+  const b2bByCategory = new Map(b2bRows.map((row) => [row.category, row]));
+  const b2cByCategory = new Map(b2cRows.map((row) => [row.category, row]));
+  return availableCategories.map((category) => ({
     category,
-    B2B: b2bTotals.get(category) ?? 0,
-    B2C: b2cTotals.get(category) ?? 0,
+    B2BIncome: b2bByCategory.get(category)?.income.total_amount ?? 0,
+    B2BOutcome: b2bByCategory.get(category)?.outcome.total_amount ?? 0,
+    B2CIncome: b2cByCategory.get(category)?.income.total_amount ?? 0,
+    B2COutcome: b2cByCategory.get(category)?.outcome.total_amount ?? 0,
   }));
 }
 
@@ -147,8 +146,8 @@ function App() {
   const [movements, setMovements] = useState<FinancialMovement[]>([]);
   const [alerts, setAlerts] = useState<MetricsAlert[]>([]);
   const [threshold, setThreshold] = useState(0.03);
-  const [b2bCategories, setB2bCategories] = useState<CategoryIncomeShare[]>([]);
-  const [b2cCategories, setB2cCategories] = useState<CategoryIncomeShare[]>([]);
+  const [b2bCategories, setB2bCategories] = useState<BusinessCategoryComparisonRow[]>([]);
+  const [b2cCategories, setB2cCategories] = useState<BusinessCategoryComparisonRow[]>([]);
   const [comparisonData, setComparisonData] = useState<BusinessIncomeComparisonPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [requestState, setRequestState] = useState({
@@ -231,17 +230,33 @@ function App() {
     const controller = new AbortController();
     const requestKey = comparisonKey;
     Promise.all([
-      fetchTopIncomeCategories("B2B", startDate, endDate, controller.signal),
-      fetchTopIncomeCategories("B2C", startDate, endDate, controller.signal),
-      fetchBusinessIncome("B2B", startDate, endDate, controller.signal),
-      fetchBusinessIncome("B2C", startDate, endDate, controller.signal),
+      fetchTopIncomeCategories("B2B", "income", startDate, endDate, controller.signal),
+      fetchTopIncomeCategories("B2B", "outcome", startDate, endDate, controller.signal),
+      fetchTopIncomeCategories("B2C", "income", startDate, endDate, controller.signal),
+      fetchTopIncomeCategories("B2C", "outcome", startDate, endDate, controller.signal),
+      fetchBusinessIncome("B2B", "income", startDate, endDate, controller.signal),
+      fetchBusinessIncome("B2B", "outcome", startDate, endDate, controller.signal),
+      fetchBusinessIncome("B2C", "income", startDate, endDate, controller.signal),
+      fetchBusinessIncome("B2C", "outcome", startDate, endDate, controller.signal),
     ])
-      .then(([b2bTop, b2cTop, b2bMovements, b2cMovements]) => {
-        const b2bTotal = b2bMovements.reduce((total, movement) => total + movement.amount, 0);
-        const b2cTotal = b2cMovements.reduce((total, movement) => total + movement.amount, 0);
-        setB2bCategories(calculateCategoryIncomeShares(b2bTop, b2bTotal));
-        setB2cCategories(calculateCategoryIncomeShares(b2cTop, b2cTotal));
-        setComparisonData(buildComparisonData(b2bTop, b2cTop, facets.categories));
+      .then(([b2bIncomeTop, b2bOutcomeTop, b2cIncomeTop, b2cOutcomeTop,
+        b2bIncomeMovements, b2bOutcomeMovements, b2cIncomeMovements, b2cOutcomeMovements]) => {
+        const sumAmounts = (items: FinancialMovement[]) => items.reduce((total, movement) => total + movement.amount, 0);
+        const b2bIncome = completeCategoryIncomeShares(facets.categories, b2bIncomeTop, sumAmounts(b2bIncomeMovements), "income");
+        const b2bOutcome = completeCategoryIncomeShares(facets.categories, b2bOutcomeTop, sumAmounts(b2bOutcomeMovements), "outcome");
+        const b2cIncome = completeCategoryIncomeShares(facets.categories, b2cIncomeTop, sumAmounts(b2cIncomeMovements), "income");
+        const b2cOutcome = completeCategoryIncomeShares(facets.categories, b2cOutcomeTop, sumAmounts(b2cOutcomeMovements), "outcome");
+        const combineOperations = (income: CategoryIncomeShare[], outcome: CategoryIncomeShare[]): BusinessCategoryComparisonRow[] =>
+          facets.categories.map((category) => ({
+            category,
+            income: income.find((item) => item.category === category)!,
+            outcome: outcome.find((item) => item.category === category)!,
+          }));
+        const b2bRows = combineOperations(b2bIncome, b2bOutcome);
+        const b2cRows = combineOperations(b2cIncome, b2cOutcome);
+        setB2bCategories(b2bRows);
+        setB2cCategories(b2cRows);
+        setComparisonData(buildComparisonData(b2bRows, b2cRows, facets.categories));
       })
       .catch(() => {
         if (!controller.signal.aborted) {
@@ -261,8 +276,8 @@ function App() {
   const comparisonLoading = requestState.comparison.key !== comparisonKey || requestState.comparison.loading;
   const visibleMovements = invertedRange ? EMPTY_MOVEMENTS : movements;
   const visibleAlerts = invertedRange ? EMPTY_ALERTS : alerts;
-  const visibleB2bCategories = invertedRange ? EMPTY_CATEGORY_SHARES : b2bCategories;
-  const visibleB2cCategories = invertedRange ? EMPTY_CATEGORY_SHARES : b2cCategories;
+  const visibleB2bCategories = invertedRange ? [] : b2bCategories;
+  const visibleB2cCategories = invertedRange ? [] : b2cCategories;
   const visibleComparisonData = invertedRange ? EMPTY_COMPARISON_DATA : comparisonData;
 
   const metrics: KPIMetrics | null = useMemo(
@@ -375,7 +390,7 @@ function App() {
               <header>
                 <h2 className="text-2xl font-semibold">Comparativa B2B vs B2C</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Ingresos principales por línea de negocio y porcentaje del total del grupo.
+                  Ingresos y egresos por categoría, con porcentajes sobre el total de cada operación y línea de negocio.
                 </p>
               </header>
               <section aria-label="Categorías principales por negocio" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
