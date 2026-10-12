@@ -41,6 +41,27 @@ export interface FacetsResponse {
   max_date: string;
 }
 
+/** One movement returned by `GET /api/metrics`, `/api/metrics/b2b`, or `/api/metrics/b2c`. */
+export interface FinancialMovementResponse {
+  /** Calendar date in `YYYY-MM-DD` format (OpenAPI `date`). */
+  create_date: string;
+
+  /** Movement amount, serialized as a JSON number. */
+  amount: number;
+
+  /** Operation: `income` or `outcome`. */
+  operation_type: OperationType;
+
+  /** Category: suppliers, sales, operational, administrative, or others. */
+  category: Category;
+
+  /** Business line: `B2B` or `B2C`. */
+  business_type: BusinessType;
+}
+
+/** Array response for the metrics movement endpoints. */
+export interface FinancialMovementsResponse extends Array<FinancialMovementResponse> {}
+
 /** One anomaly record returned as an element of `GET /api/metrics/alerts`. */
 export interface AletEntry {
   /**
