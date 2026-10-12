@@ -1,5 +1,7 @@
 import {
   type FinancialMovement,
+  type TopCategoryItem,
+  type CategoryIncomeShare,
   type KPIMetrics,
   type MonthlyDataPoint,
 } from "./financial-types";
@@ -80,4 +82,15 @@ export function formatCurrency(value: number): string {
 
 export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
+}
+
+export function calculateCategoryIncomeShares(
+  topCategories: TopCategoryItem[],
+  totalGroupIncome: number,
+): CategoryIncomeShare[] {
+  return topCategories.map((item) => ({
+    ...item,
+    percentage:
+      totalGroupIncome > 0 ? (item.total_amount / totalGroupIncome) * 100 : 0,
+  }));
 }

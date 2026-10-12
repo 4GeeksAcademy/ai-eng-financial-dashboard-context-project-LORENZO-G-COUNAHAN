@@ -30,3 +30,27 @@ export interface MetricsAlert {
   baseline_average: number
   increase_ratio: number
 }
+
+export interface MetricsFacets {
+  operation_types: OperationType[]
+  business_types: BusinessType[]
+  categories: Category[]
+  min_date: string
+  max_date: string
+}
+
+export interface TopCategoryItem {
+  category: Category
+  operation_type: OperationType
+  total_amount: number
+}
+
+export interface CategoryIncomeShare extends TopCategoryItem {
+  percentage: number
+}
+
+export interface BusinessIncomeComparisonPoint {
+  category: Category
+  B2B: number
+  B2C: number
+}

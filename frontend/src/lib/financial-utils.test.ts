@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   computeKPIs,
   computeMonthlyData,
+  calculateCategoryIncomeShares,
   formatCurrency,
   formatPercent,
 } from "./financial-utils";
 import type { FinancialMovement } from "./financial-types";
+import type { TopCategoryItem } from "./financial-types";
 
 const sampleMovements: FinancialMovement[] = [
   {
@@ -134,5 +136,26 @@ describe("formatters", () => {
 
   it("formats percent with one decimal", () => {
     expect(formatPercent(15.555)).toBe("15.6%");
+  });
+});
+
+describe("calculateCategoryIncomeShares", () => {
+  const topCategories: TopCategoryItem[] = [
+    { category: "sales", operation_type: "income", total_amount: 250 },
+    { category: "others", operation_type: "income", total_amount: 50 },
+  ];
+
+  it("calculates each top category as a share of all group income", () => {
+    expect(calculateCategoryIncomeShares(topCategories, 1000)).toEqual([
+      { ...topCategories[0], percentage: 25 },
+      { ...topCategories[1], percentage: 5 },
+    ]);
+  });
+
+  it("uses zero shares when the group has no income", () => {
+    expect(calculateCategoryIncomeShares(topCategories, 0).map((item) => item.percentage)).toEqual([
+      0,
+      0,
+    ]);
   });
 });
