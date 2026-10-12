@@ -4,7 +4,12 @@ from datetime import date
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.routes import filter_movements_by_date, generate_mock_movements
+from app.routes import (
+    MetricsSummaryItem,
+    detect_outcome_alerts,
+    filter_movements_by_date,
+    generate_mock_movements,
+)
 
 
 client = TestClient(app)
@@ -218,3 +223,69 @@ def test_metrics_alerts_returns_anomaly_candidates():
             "baseline_average",
             "increase_ratio",
         }
+
+
+def test_detect_outcome_alerts_uses_three_immediately_previous_periods():
+    summary = [
+        MetricsSummaryItem(
+            period=f"period-{index}", income=0, outcome=outcome, net=-outcome
+        )
+        for index, outcome in enumerate([100, 200, 300, 400, 1000], start=1)
+    ]
+
+    alerts = detect_outcome_alerts(summary, threshold=0.03)
+
+    assert [alert.period for alert in alerts] == ["period-4", "period-5"]
+    assert [alert.baseline_average for alert in alerts] == [200, 300]
+    assert [alert.increase_ratio for alert in alerts] == [1, 2.3333]
+
+
+def test_metrics_alerts_threshold_defaults_to_three_percent():
+    default_response = client.get("/api/metrics/alerts")
+    explicit_response = client.get(
+        "/api/metrics/alerts", params={"threshold": 0.03}
+    )
+
+    assert default_response.status_code == 200
+    assert default_response.json() == explicit_response.json()
+
+
+def test_metrics_alerts_accepts_threshold_bounds_and_rejects_outside_values():
+    for threshold in (0.01, 1.0):
+        response = client.get(
+            "/api/metrics/alerts", params={"threshold": threshold}
+        )
+        assert response.status_code == 200
+
+    for threshold in (0.009, 1.001):
+        response = client.get(
+            "/api/metrics/alerts", params={"threshold": threshold}
+        )
+        assert response.status_code == 422
+
+
+def test_metrics_alerts_apply_selected_date_range():
+    all_response = client.get(
+        "/api/metrics/alerts", params={"group_by": "month"}
+    )
+    assert all_response.status_code == 200
+    all_alerts = all_response.json()
+    assert all_alerts
+
+    selected_period = all_alerts[-1]["period"]
+    year, month = map(int, selected_period.split("-"))
+    start_date = date(year, month, 1)
+    # Mock movements are generated only through day 28, so this stays inside
+    # the selected calendar month without pulling in the following period.
+    end_date = date(year, month, 28)
+    response = client.get(
+        "/api/metrics/alerts",
+        params={
+            "group_by": "month",
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+        },
+    )
+
+    assert response.status_code == 200
+    assert all(alert["period"] == selected_period for alert in response.json())

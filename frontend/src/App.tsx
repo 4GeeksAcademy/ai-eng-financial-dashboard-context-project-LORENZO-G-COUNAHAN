@@ -4,9 +4,11 @@ import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { KPIRow } from "@/components/dashboard/kpi-row";
 import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
 import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import { AnomalyAlertsTable } from "@/components/dashboard/anomaly-alerts-table";
 import {
   type FinancialMovement,
   type KPIMetrics,
+  type MetricsAlert,
   type MonthlyDataPoint,
 } from "@/lib/financial-types";
 import { computeKPIs, computeMonthlyData } from "@/lib/financial-utils";
@@ -45,12 +47,34 @@ async function fetchFacets(signal: AbortSignal): Promise<MetricsFacets> {
   return response.json();
 }
 
+async function fetchAlerts(
+  threshold: number,
+  startDate: string,
+  endDate: string,
+  signal: AbortSignal,
+): Promise<MetricsAlert[]> {
+  const params = new URLSearchParams({ threshold: String(threshold) });
+  if (startDate) params.set("start_date", startDate);
+  if (endDate) params.set("end_date", endDate);
+  const response = await fetch(
+    `${API_BASE_URL}/api/metrics/alerts?${params.toString()}`,
+    { signal },
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch anomaly alerts: ${response.status}`);
+  }
+  return response.json();
+}
+
 function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [facets, setFacets] = useState<MetricsFacets | null>(null);
   const [movements, setMovements] = useState<FinancialMovement[]>([]);
+  const [alerts, setAlerts] = useState<MetricsAlert[]>([]);
+  const [threshold, setThreshold] = useState(0.03);
   const [loading, setLoading] = useState(true);
+  const [alertsLoading, setAlertsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const invertedRange = Boolean(startDate && endDate && endDate < startDate);
@@ -91,6 +115,29 @@ function App() {
       });
     return () => controller.abort();
   }, [startDate, endDate, invertedRange]);
+
+  useEffect(() => {
+    if (invertedRange) {
+      setAlerts([]);
+      setAlertsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setAlertsLoading(true);
+    setError(null);
+    fetchAlerts(threshold, startDate, endDate, controller.signal)
+      .then(setAlerts)
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setError("No se pudieron cargar las alertas de anomalías.");
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setAlertsLoading(false);
+      });
+    return () => controller.abort();
+  }, [threshold, startDate, endDate, invertedRange]);
 
   const metrics: KPIMetrics | null = useMemo(
     () => (movements.length ? computeKPIs(movements) : null),
@@ -152,6 +199,15 @@ function App() {
           >
             <IncomeOutcomeChart data={monthlyData} loading={loading} />
             <ProfitPercentChart data={monthlyData} loading={loading} />
+          </section>
+
+          <section aria-label="Anomaly alerts">
+            <AnomalyAlertsTable
+              alerts={alerts}
+              threshold={threshold}
+              onThresholdChange={setThreshold}
+              loading={alertsLoading}
+            />
           </section>
         </div>
       </div>

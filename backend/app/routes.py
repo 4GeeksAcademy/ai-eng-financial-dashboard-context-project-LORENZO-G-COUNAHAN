@@ -227,8 +227,8 @@ def detect_outcome_alerts(
     alerts: list[MetricsAlert] = []
     historical_outcomes: list[float] = []
     for item in summary:
-        if historical_outcomes:
-            baseline = sum(historical_outcomes) / len(historical_outcomes)
+        if len(historical_outcomes) == 3:
+            baseline = sum(historical_outcomes) / 3
             if baseline > 0:
                 increase_ratio = (item.outcome - baseline) / baseline
                 if increase_ratio > threshold:
@@ -241,6 +241,8 @@ def detect_outcome_alerts(
                         )
                     )
         historical_outcomes.append(item.outcome)
+        if len(historical_outcomes) > 3:
+            historical_outcomes.pop(0)
     return alerts
 
 
@@ -357,7 +359,7 @@ def get_metrics_comparison(
 
 @router.get("/api/metrics/alerts", response_model=list[MetricsAlert])
 def get_metrics_alerts(
-    threshold: float = Query(default=0.3, ge=0),
+    threshold: float = Query(default=0.03, ge=0.01, le=1.0),
     group_by: GroupBy = Query(default="month"),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),

@@ -23,3 +23,10 @@ export interface MonthlyDataPoint {
   outcome: number
   profitPercent: number
 }
+
+export interface MetricsAlert {
+  period: string
+  outcome_total: number
+  baseline_average: number
+  increase_ratio: number
+}
