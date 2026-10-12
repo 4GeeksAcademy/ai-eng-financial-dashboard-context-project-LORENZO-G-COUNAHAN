@@ -60,6 +60,16 @@ def test_metrics_endpoint_respects_date_filters():
     assert all(item["create_date"] == first_date for item in payload)
 
 
+def test_metrics_endpoint_rejects_inverted_date_range():
+    response = client.get(
+        "/api/metrics",
+        params={"start_date": "2025-03-31", "end_date": "2025-03-01"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "end_date must be on or after start_date"
+
+
 def test_b2b_endpoint_only_returns_b2b_records():
     response = client.get("/api/metrics/b2b")
 

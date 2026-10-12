@@ -256,6 +256,12 @@ def get_metrics(
     category: Category | None = Query(default=None),
     operation_type: OperationType | None = Query(default=None),
 ) -> list[FinancialMovement]:
+    if start_date is not None and end_date is not None and end_date < start_date:
+        raise HTTPException(
+            status_code=422,
+            detail="end_date must be on or after start_date",
+        )
+
     movements = generate_mock_movements(seed=42)
     filtered = filter_movements(
         movements, start_date, end_date, category, operation_type

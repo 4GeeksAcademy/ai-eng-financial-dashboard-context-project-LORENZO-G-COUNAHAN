@@ -16,11 +16,11 @@ export function DashboardHeader({ period = '2024 — Full Year' }: DashboardHead
           <p className="text-xs text-muted-foreground mt-0.5">Executive metrics dashboard</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      {period ? <div className="flex items-center gap-2">
         <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
           {period}
         </span>
-      </div>
+      </div> : null}
     </header>
   )
 }
