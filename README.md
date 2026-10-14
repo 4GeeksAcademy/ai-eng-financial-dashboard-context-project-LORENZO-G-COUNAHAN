@@ -62,6 +62,18 @@ Se aplicaron mejoras de accesibilidad WCAG en el frontend:
 
 Consulta `memory-bank/memory-bank.md` para el detalle completo.
 
+## Rendimiento (Vercel React Best Practices)
+
+Optimizaciones aplicadas siguiendo las guías de Vercel Engineering:
+
+| Mejora | Archivo modificado | Regla | Prioridad |
+|---|---|---|---|
+| Pre-bundle de barrel imports | `frontend/vite.config.ts` | `bundle-barrel-imports` | CRÍTICA |
+| Combinar iteraciones en `computeKPIs` | `frontend/src/lib/financial-utils.ts` | `js-combine-iterations` | MEDIA |
+| Cachear `Intl.NumberFormat` | `frontend/src/lib/financial-utils.ts` | `js-hoist-regexp` | MEDIA |
+| Lazy state initialization | `frontend/src/App.tsx` | `rerender-lazy-state-init` | MEDIA |
+| `React.memo` en KPICard | `frontend/src/components/dashboard/kpi-card.tsx` | `rerender-memo` | MEDIA |
+
 ---
 
 This and many other projects are built by students as part of the [Career Programs](https://4geeksacademy.com/compare-programs) at [4Geeks Academy](https://4geeksacademy.com). By [@marcogonzalo](https://github.com/marcogonzalo) and [other contributors](https://github.com/4GeeksAcademy/ai-eng-financial-dashboard-context-project/graphs/contributors). Find out more about [AI Engineering](https://4geeksacademy.com/en/coding-bootcamps/ai-engineering), [Data Science & Machine Learning](https://4geeksacademy.com/en/coding-bootcamps/data-science-ml), [Cybersecurity](https://4geeksacademy.com/en/coding-bootcamps/cybersecurity) and [Full-Stack Software Developer with AI](https://4geeksacademy.com/en/coding-bootcamps/full-stack-developer).

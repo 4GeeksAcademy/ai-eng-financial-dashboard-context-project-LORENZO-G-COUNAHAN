@@ -150,11 +150,11 @@ function App() {
   const [b2cCategories, setB2cCategories] = useState<BusinessCategoryComparisonRow[]>([]);
   const [comparisonData, setComparisonData] = useState<BusinessIncomeComparisonPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [requestState, setRequestState] = useState({
+  const [requestState, setRequestState] = useState(() => ({
     movements: { key: "", loading: true },
     alerts: { key: "", loading: true },
     comparison: { key: "", loading: true },
-  });
+  }));
 
   const invertedRange = Boolean(startDate && endDate && endDate < startDate);
   const movementsKey = `${startDate}|${endDate}`;
