@@ -142,3 +142,10 @@ Las 5 optimizaciones propuestas fueron implementadas exitosamente. A continuaci�
 
 **TypeScript:** Sin errores (0 errores reportados por `get_errors` en `frontend/src`).
 **Tests:** Se verificó manualmente que la lógica es equivalente. Los tests existentes pasarían con resultados idénticos.
+
+## Protocolo de nuevas funcionalidades — Actualización (2026-10-14)
+
+Se actualizó `.agents/skills/SKILLS.md` para reforzar los requisitos de especificación y cierre:
+
+- `spec.md` debe comenzar con cabecera YAML `name` y `description`, incluyendo el nombre de la funcionalidad y una descripción breve de su objetivo, disparadores y alcance.
+- Después de implementar y verificar una funcionalidad, se deben actualizar `memory-bank/memory-bank.md`, `README.md` y `README.es.md` con el comportamiento realmente disponible, manteniendo ambos README coherentes y sin documentar capacidades no verificadas.
