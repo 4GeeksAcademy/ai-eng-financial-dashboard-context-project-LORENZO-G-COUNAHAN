@@ -295,7 +295,7 @@ function App() {
       : "";
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
+    <main id="main-content" className="dark min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
           <DashboardHeader period={period} />
@@ -346,6 +346,7 @@ function App() {
           {invertedRange ? (
             <div
               role="alert"
+              aria-live="assertive"
               className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
             >
               El rango no es válido: la fecha de fin debe ser igual o posterior a la fecha de inicio.
@@ -353,16 +354,27 @@ function App() {
           ) : null}
 
           {error ? (
-            <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+            >
               {error}
             </div>
           ) : null}
 
           {view === "overview" && !loading && !error && !invertedRange && movements.length === 0 ? (
-            <div role="status" className="rounded-lg border border-border/60 bg-card p-6 text-center text-sm text-muted-foreground">
+            <div role="status" aria-live="polite" className="rounded-lg border border-border/60 bg-card p-6 text-center text-sm text-muted-foreground">
               No hay datos para mostrar en el periodo seleccionado.
             </div>
           ) : null}
+
+          {/* Announce loading state to screen readers */}
+          {loading && (
+            <div aria-live="polite" className="sr-only" role="status">
+              Cargando datos financieros…
+            </div>
+          )}
 
           {view === "overview" ? (
             <>

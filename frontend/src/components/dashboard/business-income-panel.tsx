@@ -31,6 +31,9 @@ export function BusinessIncomePanel({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
+              <caption className="sr-only">
+                {businessType}: ingresos y egresos por categoría, con montos y porcentajes.
+              </caption>
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-3">Categoría</th>

@@ -55,6 +55,9 @@ export function AnomalyAlertsTable({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
+              <caption className="sr-only">
+                Alertas de anomalías: periodos en los que el gasto supera el umbral configurado respecto a los tres periodos anteriores.
+              </caption>
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-3">Periodo</th>

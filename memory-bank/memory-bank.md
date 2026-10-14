@@ -51,3 +51,37 @@ docker compose up --build
 6. Decidir si la interfaz integrará las rutas analíticas existentes.
 
 Estas prioridades son sugerencias derivadas de la revisión del repositorio, no compromisos de producto.
+
+## Accesibilidad — Mejoras aplicadas (2026-10-14)
+
+Se aplicaron 5 modificaciones de accesibilidad en el frontend, siguiendo criterios WCAG (Web Content Accessibility Guidelines):
+
+### 1. `frontend/index.html` — Idioma, meta description y skip-to-content link
+- **Cambio:** `lang="en"` → `lang="es"` (coherencia con contenido en español).
+- **Añadido:** `<meta name="description">` con descripción del dashboard.
+- **Añadido:** Enlace "Saltar al contenido principal" (`#main-content`) visible solo al recibir foco (clase `sr-only focus:not-sr-only`).
+
+### 2. `frontend/src/App.tsx` — Regiones ARIA, `aria-live` y `aria-current`
+- **Añadido:** `id="main-content"` en `<main>` como destino del skip-to-content link.
+- **Añadido:** `aria-live="assertive"` en los contenedores de error e intervalo invertido.
+- **Añadido:** `aria-live="polite"` en el mensaje de carga y en el mensaje "sin datos".
+- **Añadido:** `aria-label` en secciones (`key performance indicators`, `financial charts`, `anomaly alerts`, etc.).
+
+### 3. `frontend/src/components/dashboard/dashboard-header.tsx` — Icono decorativo oculto
+- **Cambio:** `aria-hidden="true"` en el `<span>` contenedor del icono `LayoutDashboard` para que lectores de pantalla lo ignoren.
+
+### 4. `frontend/src/components/dashboard/kpi-card.tsx` — Icono decorativo oculto
+- **Cambio:** `aria-hidden="true"` en el badge del icono de cada KPI (TrendingUp, TrendingDown, DollarSign, BarChart2).
+
+### 5. `frontend/src/components/dashboard/anomaly-alerts-table.tsx` y `business-income-panel.tsx` — `<caption>` en tablas de datos
+- **Añadido:** `<caption className="sr-only">` con descripción textual en ambas tablas, mejorando la navegación por tablas para usuarios de lectores de pantalla.
+
+### Checklist de accesibilidad cubierto
+- [x] Skip-to-content link (2.4.1 Bypass Blocks)
+- [x] Lang attribute correcto (3.1.1 Language of Page)
+- [x] Meta description descriptiva
+- [x] Iconos decorativos con `aria-hidden` (1.1.1 Non-text Content)
+- [x] Tablas de datos con `<caption>` (1.3.1 Info and Relationships)
+- [x] Mensajes dinámicos con `aria-live` (4.1.3 Status Messages)
+- [x] `aria-current="page"` en navegación (4.1.2 Name, Role, Value)
+- [x] `role="alert"` en mensajes de error (4.1.3 Status Messages)
