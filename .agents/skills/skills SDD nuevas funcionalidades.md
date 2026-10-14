@@ -20,6 +20,14 @@ Dentro de ese directorio se crearán, en este orden, `spec.md`, `plan.md` y `tas
 
 Primero crear `specs/001nombre-de-la-funcionalidad/spec.md`. Usar el nombre real del proyecto en el título y mantener estas secciones, en este orden:
 
+Cabecera YAML obligatoria al inicio de `spec.md`:
+```yaml
+---
+name: nombre de la funcionalidad a incorporar
+description: breve descripción de la nueva funcionalidad, su tarea u objetivo a cubrir, disparadores y alcance.
+---
+```
+
 ```markdown
 # [Nombre del proyecto]
 
@@ -106,4 +114,5 @@ Reglas:
 - Seguir `tasks.md` estrictamente en orden: no iniciar una tarea posterior mientras la anterior siga sin terminar.
 - Mantener las casillas al día al completar cada tarea; la evidencia de verificación debe ser real y comprobable.
 - Al final, comparar la implementación con cada criterio de aceptación de `spec.md`, uno por uno, y registrar `cumple` o `no cumple` con evidencia breve. No ocultar limitaciones ni pruebas no ejecutadas.
+- Una vez implementada y verificada la funcionalidad, actualizar `memory-bank/memory-bank.md`, `README.md` y `README.es.md` para documentar el comportamiento realmente disponible. Mantener los README coherentes entre idiomas y no documentar como existente nada que no se haya verificado.
 - La especificación inicial es la referencia aprobada y debe conservarse: no la reescribas ni cambies su alcance durante la implementación. Si se detecta una contradicción, carencia o necesidad de cambio, detén el trabajo relacionado e informa al usuario; continúa solo tras recibir autorización explícita. Cualquier cambio autorizado debe preservar la especificación inicial y dejar constancia de la modificación aprobada; luego alinea `plan.md` y `tasks.md` con ella antes de reanudar la implementación.
