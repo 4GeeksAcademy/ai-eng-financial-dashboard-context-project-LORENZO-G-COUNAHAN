@@ -52,6 +52,27 @@ docker compose up --build
 
 Estas prioridades son sugerencias derivadas de la revisión del repositorio, no compromisos de producto.
 
+## Skill TDD — incorporada (2026-10-15)
+
+La skill de desarrollo guiado por pruebas se incorporó desde `mattpocock/skills` mediante:
+
+```bash
+npx skills add https://github.com/mattpocock/skills --skill tdd
+```
+
+Su guía está en `.agents/skills/tdd/SKILL.md`; `skills-lock.json` registra la fuente y versión/hash. Antes de aplicar el flujo, consultar también `tests.md` y `mocking.md` junto a la skill.
+
+### Flujo acordado
+
+- Acordar los seams públicos que se probarán antes de escribir pruebas; indicar qué comportamiento cubre cada uno y qué queda fuera.
+- Escribir una prueba de comportamiento que falle, implementar lo mínimo para hacerla pasar y continuar en slices verticales pequeños (red → green).
+- Usar expectativas basadas en ejemplos o resultados independientes, no recomputar en la prueba la misma lógica que se valida.
+- Evitar pruebas acopladas a métodos privados o colaboradores internos; no escribir primero una suite completa antes de implementar.
+
+### Justificación de esta actualización
+
+Se registra esta skill en el memory bank para que futuras sesiones apliquen el mismo proceso y conozcan por qué es relevante para este dashboard. La cobertura frontend existente se concentra en funciones financieras puras; el flujo React/API y sus estados de carga, error y recuperación no tienen pruebas de integración identificadas. TDD aporta un método explícito para acordar esos límites y probar primero comportamientos valiosos sin fijar detalles internos ni inventar alcance. Esta nota documenta una práctica de trabajo, no afirma que esas pruebas nuevas ya existan ni que se hayan ejecutado.
+
 ## Accesibilidad — Mejoras aplicadas (2026-10-14)
 
 Se aplicaron 5 modificaciones de accesibilidad en el frontend, siguiendo criterios WCAG (Web Content Accessibility Guidelines):

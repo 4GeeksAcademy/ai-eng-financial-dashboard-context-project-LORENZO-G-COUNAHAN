@@ -36,6 +36,16 @@ _Financial metrics dashboard with a React + TypeScript frontend and a FastAPI ba
       └─ /SKILL.md
 ```
 
+## Test-driven development skill
+
+The repository includes the TDD skill from `mattpocock/skills` at `.agents/skills/tdd/SKILL.md`. To install or update it, run:
+
+```bash
+npx skills add https://github.com/mattpocock/skills --skill tdd
+```
+
+The skill is also recorded in `skills-lock.json`. When applying it, agree on the public behavior seams before writing tests, then work in small red-green slices. Tests should verify behavior through public interfaces rather than implementation details. Frontend tests run with `cd frontend && npm test -- --run`.
+
 ## How to run locally
 
 ```bash
